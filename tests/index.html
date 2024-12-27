@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #data-container {
+            margin-top: 20px;
+        }
+        .data-item {
+            background-color: #f4f4f4;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        #raw-json {
+            margin-top: 20px;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Data from MongoDB</h1>
+<button id="fetch-data-btn">Fetch Data</button>
+<div id="data-container"></div>
+<h3>Proxy IP Address:</h3>
+<p id="proxy-ip"></p>
+<h3>Raw JSON Data:</h3>
+<div id="raw-json"></div>
+
+<script>
+    // Function to fetch data by running the scraper
+    async function fetchData() {
+        try {
+            // Call the backend API to run the scraper and fetch new data
+            const response = await fetch('/api/scrape');
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from the server.');
+            }
+    
+            const data = await response.json();
+    
+            // If data is an empty array or an error object
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error('Unexpected data format or no data available.');
+            }
+    
+            // Display the fetched data
+            const container = document.getElementById('data-container');
+            container.innerHTML = ''; // Clear existing data
+    
+            const proxyIP = data[0]?.proxy || "N/A"; // Get the proxy IP address
+            document.getElementById('proxy-ip').textContent = proxyIP;
+    
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.classList.add('data-item');
+                div.innerHTML = `<strong>User:</strong> ${item.additional_info.user}<br>
+                                 <strong>Text:</strong> ${item.text}<br>
+                                 <strong>Timestamp:</strong> ${new Date(item.timestamp).toLocaleString()}<br>`;
+                container.appendChild(div);
+            });
+    
+            // Display raw JSON data
+            const rawJsonContainer = document.getElementById('raw-json');
+            rawJsonContainer.textContent = JSON.stringify(data, null, 2); // Pretty print JSON
+        } catch (error) {
+            console.error('Error fetching data:', error.message);
+            alert('Error fetching data: ' + error.message);
+        }
+    }
+    
+    // Event listener for the button
+    document.getElementById('fetch-data-btn').addEventListener('click', fetchData);
+    </script>
+    
+
+</body>
+</html>
